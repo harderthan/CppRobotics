@@ -15,7 +15,7 @@ if (CPPLINT_EXEC)
         ERROR_VARIABLE cpplint_error
     )
     if (cpplint_result)
-        message(WARNING "cpplint found errors:\n${cpplint_error}")
+        message(FATAL_ERROR "cpplint found errors:\n${cpplint_error}")
     else()
         message(STATUS "cpplint completed successfully.")
     endif()
