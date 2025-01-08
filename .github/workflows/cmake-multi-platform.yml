@@ -45,7 +45,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       # Install cpplint to execute cpplint checks on the codebase. Please check the root CMakeLists.txt file for the cpplint configuration.
-    - run: ls -l && pip install -r requirements.txt
+    - run: pip install -r requirements.txt
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
