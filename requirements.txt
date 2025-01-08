@@ -1,4 +1,4 @@
-cpplint == 1.6.1
+cpplint == 1.6.1 # For linting
 numpy == 2.2.1
 scipy == 1.15.0
 matplotlib == 3.10.0

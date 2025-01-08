@@ -24,7 +24,7 @@ else()
 endif()
 
 # Find matplotlib_cpp
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(MatplotlibCpp REQUIRED)
 
