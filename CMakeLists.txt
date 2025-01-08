@@ -27,3 +27,5 @@ endif()
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(MatplotlibCpp REQUIRED)
+
+add_subdirectory(path_planning)
