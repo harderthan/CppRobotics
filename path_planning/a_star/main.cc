@@ -37,6 +37,8 @@ int main() {
     plt::axis("equal");
   }
 
+  plt::pause(10.0);
+  
   pa::AStarPlanner planner(grid_size, robot_radius, show_animation);
   planner.SetObstaclePositions(obstacle_positions);
   auto path = planner.Plan(start, goal);
