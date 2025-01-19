@@ -45,3 +45,4 @@ find_package(MatplotlibCpp REQUIRED)
 
 # Build the subdirectories
 add_subdirectory(path_planning)
+add_subdirectory(path_tracking)
