@@ -5,8 +5,8 @@
 #include <iostream>
 #include <limits>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "matplotlibcpp.h"
 
