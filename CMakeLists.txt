@@ -23,9 +23,25 @@ else()
     message(WARNING "cpplint not found. Please install cpplint to enable linting.")
 endif()
 
-# Find matplotlib_cpp
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+
+
+# Get the Numpy include directory dynamically
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
+execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "import numpy; print(numpy.get_include())"
+    OUTPUT_VARIABLE NumPy_INCLUDE_DIRS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if (NOT NumPy_INCLUDE_DIRS)
+    message(FATAL_ERROR "Failed to find Numpy include directory. Ensure Numpy is installed.")
+else()
+    message(STATUS "Numpy include directory: ${NumPy_INCLUDE_DIRS}")
+    include_directories(${NumPy_INCLUDE_DIRS})
+endif()
+
+# Find MatplotlibCpp
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(MatplotlibCpp REQUIRED)
 
+# Build the subdirectories
 add_subdirectory(path_planning)
