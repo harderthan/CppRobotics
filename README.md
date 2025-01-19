@@ -1,5 +1,7 @@
 # CppRobotics
 
+![Linux-CI](https://github.com/harderthan/CppRobotics/actions/workflows/linux-ci.yml/badge.svg)
+
 ## Path Planning
 
 ### A-Star Planning
