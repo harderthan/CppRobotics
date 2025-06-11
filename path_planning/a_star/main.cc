@@ -30,8 +30,6 @@ int main() {
     }
   }
 
-  std::cout << "Test for AI Code Reviewer";
-  
   if (show_animation) {
     plt::xlim(0, 60);
     plt::ylim(0, 60);
