@@ -14,6 +14,8 @@ constexpr double kLfc = 2.0;
 namespace path_tracking {
 namespace pure_pursuit {
 
+static double test_variable = 0.0;
+
 State::State(double x, double y, double yaw, double v, double wheel_base)
     : x_(x), y_(y), yaw_(yaw), v_(v), wheel_base_(wheel_base) {
   SetRearPosition(x_, y_, yaw_);
