@@ -2,9 +2,9 @@ name: linux-ci
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   BUILD_TYPE: Release
@@ -14,22 +14,33 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
-    - name: Install Python Packages
-      run: |
-        pip install --upgrade pip
-        pip install -r ./requirements.txt
+      - name: Install Python Packages
+        run: |
+          pip install --upgrade pip
+          pip install -r ./requirements.txt
 
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      - name: Install Cpp Packages with vcpkg
+        working-directory: ${{github.workspace}}/third_party/vcpkg
+        run: |
+          ./bootstrap-vcpkg.sh
+          ./vcpkg install implot # TODO: Get packages from `requirements.txt`.
 
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      - name: Configure CMake
+        run: |
+          cd ${{github.workspace}}
+          cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_TOOLCHAIN_FILE=third_party/vcpkg/scripts/buildsystems/vcpkg.cmake
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: ctest -C ${{env.BUILD_TYPE}}
+      - name: Build
+        run: |
+          cd ${{github.workspace}}
+          cmake --build build --config ${{env.BUILD_TYPE}}
+
+      - name: Test
+        working-directory: ${{github.workspace}}
+        run: ctest -C ${{env.BUILD_TYPE}}
