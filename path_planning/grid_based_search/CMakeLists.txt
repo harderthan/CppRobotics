@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(path_planner_ros2)
+project(grid_based_search)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -9,20 +9,33 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(foxglove_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
+
+# Add a_star subdirectory
+add_subdirectory(a_star)
 
 # ROS2 Node
-add_executable(a_star_node src/a_star_node.cpp)
+add_executable(a_star_node ros2/a_star_node.cpp)
 
 ament_target_dependencies(a_star_node
   rclcpp
   foxglove_msgs
-  geometry_msgs
+)
+
+# Include directories for a_star headers
+target_include_directories(a_star_node
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# Link a_star library
+target_link_libraries(a_star_node
+  a_star
 )
 
 install(
@@ -32,6 +45,11 @@ install(
 
 install(
   DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY foxglove
   DESTINATION share/${PROJECT_NAME}
 )
 

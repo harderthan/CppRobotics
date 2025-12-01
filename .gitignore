@@ -33,3 +33,6 @@ __pycache__/
 
 # VScode
 .vscode
+
+# AI Agent
+research.md
