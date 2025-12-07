@@ -33,6 +33,7 @@ __pycache__/
 
 # VScode
 .vscode
+compile_commands.json
 
 # AI Agent
 research.md
