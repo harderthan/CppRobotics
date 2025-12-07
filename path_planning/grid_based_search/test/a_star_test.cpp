@@ -11,7 +11,9 @@ TEST(AStarTest, CellTypeEnum) {
   EXPECT_EQ(static_cast<int>(CellType::kObstacle), 1);
   EXPECT_EQ(static_cast<int>(CellType::kStart), 2);
   EXPECT_EQ(static_cast<int>(CellType::kGoal), 3);
-  EXPECT_EQ(static_cast<int>(CellType::kPath), 4);
+  EXPECT_EQ(static_cast<int>(CellType::kClosed), 4);
+  EXPECT_EQ(static_cast<int>(CellType::kOpen), 5);
+  EXPECT_EQ(static_cast<int>(CellType::kPath), 6);
 }
 
 // Test Grid structure initialization.
@@ -24,8 +26,6 @@ TEST(AStarTest, GridInitialization) {
   EXPECT_EQ(grid.width, 10);
   EXPECT_EQ(grid.height, 10);
   EXPECT_EQ(grid.data.size(), 100);
-  EXPECT_EQ(grid.path_x.size(), 0);
-  EXPECT_EQ(grid.path_y.size(), 0);
 }
 
 // Test Grid with different cell types.
@@ -41,10 +41,18 @@ TEST(AStarTest, GridWithDifferentCellTypes) {
   grid.data[24] = CellType::kGoal;
   // Set obstacle.
   grid.data[12] = CellType::kObstacle;
+  // Mark open and closed cells.
+  grid.data[6] = CellType::kOpen;
+  grid.data[18] = CellType::kClosed;
+  // Mark a path cell.
+  grid.data[7] = CellType::kPath;
 
   EXPECT_EQ(grid.data[0], CellType::kStart);
   EXPECT_EQ(grid.data[24], CellType::kGoal);
   EXPECT_EQ(grid.data[12], CellType::kObstacle);
+  EXPECT_EQ(grid.data[6], CellType::kOpen);
+  EXPECT_EQ(grid.data[18], CellType::kClosed);
+  EXPECT_EQ(grid.data[7], CellType::kPath);
   EXPECT_EQ(grid.data[1], CellType::kEmpty);
 }
 }  // namespace a_star

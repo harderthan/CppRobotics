@@ -147,6 +147,7 @@ std::pair<std::vector<double>, std::vector<double>> CalcFinalPath(
 }
 
 Grid BuildGridSnapshot(const Config& config, const Node& ref_node,
+                       const std::unordered_map<int, Node>& open_set,
                        const std::unordered_map<int, Node>& closed_set,
                        const Node& start, const Node& goal,
                        bool use_goal_path = false) {
@@ -165,6 +166,22 @@ Grid BuildGridSnapshot(const Config& config, const Node& ref_node,
       if (config.obstacle_map[index]) {
         grid.data[index] = CellType::kObstacle;
       }
+    }
+  }
+
+  for (const auto& [id, node] : open_set) {
+    (void)id;
+    const size_t index = static_cast<size_t>(node.x * config.y_width + node.y);
+    if (index < grid.data.size()) {
+      grid.data[index] = CellType::kOpen;
+    }
+  }
+
+  for (const auto& [id, node] : closed_set) {
+    (void)id;
+    const size_t index = static_cast<size_t>(node.x * config.y_width + node.y);
+    if (index < grid.data.size()) {
+      grid.data[index] = CellType::kClosed;
     }
   }
 
@@ -193,9 +210,6 @@ Grid BuildGridSnapshot(const Config& config, const Node& ref_node,
     }
     grid.data[path_index] = CellType::kPath;
   }
-
-  grid.path_x = rx;
-  grid.path_y = ry;
   return grid;
 }
 
@@ -248,7 +262,7 @@ std::vector<double> BuildObstacleY() {
 }  // namespace
 
 std::vector<Grid> Run() {
-  // 기본 파라미터 (Python Robotics 예제와 동일)
+  // Default parameters matching the Python Robotics example.
   constexpr double grid_size = 2.0;
   constexpr double robot_radius = 1.0;
   const double sx = 10.0;
@@ -273,7 +287,7 @@ std::vector<Grid> Run() {
 
   std::vector<Grid> snapshots;
   snapshots.push_back(
-      BuildGridSnapshot(config, start, closed_set, start, goal));
+      BuildGridSnapshot(config, start, open_set, closed_set, start, goal));
 
   bool found_goal = false;
   while (!open_set.empty()) {
@@ -319,17 +333,12 @@ std::vector<Grid> Run() {
     }
 
     snapshots.push_back(
-        BuildGridSnapshot(config, current, closed_set, start, goal));
+        BuildGridSnapshot(config, current, open_set, closed_set, start, goal));
   }
 
-  auto [rx, ry] =
-      found_goal ? CalcFinalPath(goal, closed_set, config)
-                 : std::pair<std::vector<double>, std::vector<double>>{{}, {}};
-
-  Grid final_grid = BuildGridSnapshot(config, goal, closed_set, start, goal,
-                                      /*use_goal_path=*/found_goal);
-  final_grid.path_x = rx;
-  final_grid.path_y = ry;
+  Grid final_grid =
+      BuildGridSnapshot(config, goal, open_set, closed_set, start, goal,
+                        /*use_goal_path=*/found_goal);
 
   snapshots.push_back(final_grid);
   return snapshots;

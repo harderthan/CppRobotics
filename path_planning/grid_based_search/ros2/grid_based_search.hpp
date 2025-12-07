@@ -24,12 +24,11 @@ class GridBasedSearch : public rclcpp::Node {
         std::chrono::milliseconds(0),
         [this, results_callback, grid_to_msg_callback]() {
           const auto results = results_callback();
-          std::for_each(
-              results.begin(), results.end(),
-              [this, grid_to_msg_callback](const auto& grid) {
-                rclcpp::sleep_for(std::chrono::milliseconds(100));
-                publisher_->publish(grid_to_msg_callback(grid));
-              });
+          std::for_each(results.begin(), results.end(),
+                        [this, grid_to_msg_callback](const auto& grid) {
+                          publisher_->publish(grid_to_msg_callback(grid));
+                          rclcpp::sleep_for(std::chrono::milliseconds(100));
+                        });
         });
   }
 

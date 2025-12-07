@@ -12,13 +12,13 @@ enum class CellType {
   kObstacle = 1,
   kStart = 2,
   kGoal = 3,
-  kPath = 4,
+  kClosed = 4,
+  kOpen = 5,
+  kPath = 6,
 };
 
 struct Grid {
   std::vector<CellType> data;
-  std::vector<double> path_x;
-  std::vector<double> path_y;
   int width;
   int height;
 };

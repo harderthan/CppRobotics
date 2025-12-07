@@ -1,15 +1,15 @@
 {
   "configById": {
-    "3D!3uecdyn": {
+    "3D!3otwylr": {
       "cameraState": {
         "perspective": false,
-        "distance": 13.268408625779717,
+        "distance": 163.81821098983391,
         "phi": 59.99999999999999,
-        "thetaOffset": 0.37872991583788546,
+        "thetaOffset": -0.1296829971180156,
         "targetOffset": [
-          0,
-          0,
-          0
+          45.42006270860592,
+          43.14282107337535,
+          79.50014976110388
         ],
         "target": [
           0,
@@ -27,14 +27,23 @@
         "far": 5000
       },
       "followMode": "follow-pose",
-      "scene": {},
+      "scene": {
+        "enableStats": false,
+        "syncCamera": false
+      },
       "transforms": {},
       "topics": {
         "/grid": {
           "visible": true,
-          "colorField": "type",
-          "colorMode": "colormap",
+          "colorField": "r",
+          "colorMode": "rgba-fields",
           "colorMap": "turbo"
+        },
+        "/initialpose": {
+          "visible": false
+        },
+        "/move_base_simple/goal": {
+          "visible": false
         }
       },
       "layers": {
@@ -42,7 +51,7 @@
           "visible": true,
           "frameLocked": true,
           "label": "Grid",
-          "instanceId": "636759f4-19f7-4887-984f-bcebd41db560",
+          "instanceId": "0e49a25b-f551-4cae-aca5-71c294760872",
           "layerId": "foxglove.Grid",
           "size": 10,
           "divisions": 10,
@@ -69,7 +78,8 @@
         "poseEstimateYDeviation": 0.5,
         "poseEstimateThetaDeviation": 0.26179939
       },
-      "imageMode": {}
+      "imageMode": {},
+      "foxglovePanelTitle": "GridBasedSearch"
     }
   },
   "globalVariables": {},
@@ -77,5 +87,5 @@
   "playbackConfig": {
     "speed": 1
   },
-  "layout": "3D!3uecdyn"
+  "layout": "3D!3otwylr"
 }
