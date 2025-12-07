@@ -1,7 +1,9 @@
 #include "a_star.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstddef>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -36,6 +38,10 @@ struct Motion {
   double cost;
 };
 
+constexpr double kHeuristicWeight = 1.0;
+constexpr double kDefaultGridSize = 2.0;
+constexpr double kDefaultRobotRadius = 1.0;
+
 double CalcGridPosition(int index, int min_position, double resolution) {
   return index * resolution + static_cast<double>(min_position);
 }
@@ -46,24 +52,36 @@ int CalcXYIndex(double position, int min_position, double resolution) {
 }
 
 int CalcGridIndex(const Node& node, const Config& config) {
-  return (node.y - config.min_y) * config.x_width + (node.x - config.min_x);
+  return node.y * config.x_width + node.x;
+}
+
+std::size_t CalcMapIndex(int x, int y, const Config& config) {
+  return static_cast<std::size_t>(x) *
+             static_cast<std::size_t>(config.y_width) +
+         static_cast<std::size_t>(y);
+}
+
+bool IsInsideMap(int x, int y, const Config& config) {
+  return x >= 0 && x < config.x_width && y >= 0 && y < config.y_width;
 }
 
 double CalcHeuristic(const Node& n1, const Node& n2) {
-  constexpr double kWeight = 1.0;
-  return kWeight * std::hypot(static_cast<double>(n1.x - n2.x),
-                              static_cast<double>(n1.y - n2.y));
+  return kHeuristicWeight * std::hypot(static_cast<double>(n1.x - n2.x),
+                                       static_cast<double>(n1.y - n2.y));
 }
 
 std::vector<Motion> GetMotionModel() {
-  return {{1, 0, 1.0},
-          {0, 1, 1.0},
-          {-1, 0, 1.0},
-          {0, -1, 1.0},
-          {-1, -1, std::sqrt(2.0)},
-          {-1, 1, std::sqrt(2.0)},
-          {1, -1, std::sqrt(2.0)},
-          {1, 1, std::sqrt(2.0)}};
+  static const std::array<Motion, 8> kMotions = {{
+      {1, 0, 1.0},
+      {0, 1, 1.0},
+      {-1, 0, 1.0},
+      {0, -1, 1.0},
+      {-1, -1, std::sqrt(2.0)},
+      {-1, 1, std::sqrt(2.0)},
+      {1, -1, std::sqrt(2.0)},
+      {1, 1, std::sqrt(2.0)},
+  }};
+  return std::vector<Motion>(kMotions.begin(), kMotions.end());
 }
 
 Config BuildConfig(const std::vector<double>& ox, const std::vector<double>& oy,
@@ -72,17 +90,21 @@ Config BuildConfig(const std::vector<double>& ox, const std::vector<double>& oy,
   config.resolution = resolution;
   config.robot_radius = robot_radius;
   config.min_x =
-      static_cast<int>(std::round(*std::min_element(ox.begin(), ox.end())));
+      static_cast<int>(std::lround(*std::min_element(ox.begin(), ox.end())));
   config.min_y =
-      static_cast<int>(std::round(*std::min_element(oy.begin(), oy.end())));
+      static_cast<int>(std::lround(*std::min_element(oy.begin(), oy.end())));
   config.max_x =
-      static_cast<int>(std::round(*std::max_element(ox.begin(), ox.end())));
+      static_cast<int>(std::lround(*std::max_element(ox.begin(), ox.end())));
   config.max_y =
-      static_cast<int>(std::round(*std::max_element(oy.begin(), oy.end())));
-  config.x_width = static_cast<int>(
-      std::round((config.max_x - config.min_x) / config.resolution));
-  config.y_width = static_cast<int>(
-      std::round((config.max_y - config.min_y) / config.resolution));
+      static_cast<int>(std::lround(*std::max_element(oy.begin(), oy.end())));
+
+  // Include boundary cells.
+  config.x_width = static_cast<int>(std::lround((config.max_x - config.min_x) /
+                                                config.resolution)) +
+                   1;
+  config.y_width = static_cast<int>(std::lround((config.max_y - config.min_y) /
+                                                config.resolution)) +
+                   1;
 
   config.obstacle_map.assign(config.x_width * config.y_width, false);
 
@@ -90,10 +112,11 @@ Config BuildConfig(const std::vector<double>& ox, const std::vector<double>& oy,
     const double x = CalcGridPosition(ix, config.min_x, config.resolution);
     for (int iy = 0; iy < config.y_width; ++iy) {
       const double y = CalcGridPosition(iy, config.min_y, config.resolution);
-      for (size_t i = 0; i < ox.size(); ++i) {
+      for (std::size_t i = 0; i < ox.size(); ++i) {
         const double distance = std::hypot(ox[i] - x, oy[i] - y);
         if (distance <= config.robot_radius) {
-          config.obstacle_map[ix * config.y_width + iy] = true;
+          const auto index = CalcMapIndex(ix, iy, config);
+          config.obstacle_map[index] = true;
           break;
         }
       }
@@ -104,16 +127,11 @@ Config BuildConfig(const std::vector<double>& ox, const std::vector<double>& oy,
 }
 
 bool VerifyNode(const Node& node, const Config& config) {
-  const double px = CalcGridPosition(node.x, config.min_x, config.resolution);
-  const double py = CalcGridPosition(node.y, config.min_y, config.resolution);
-
-  if (px < config.min_x || py < config.min_y || px >= config.max_x ||
-      py >= config.max_y) {
+  if (!IsInsideMap(node.x, node.y, config)) {
     return false;
   }
 
-  const size_t map_index =
-      static_cast<size_t>(node.x * config.y_width + node.y);
+  const auto map_index = CalcMapIndex(node.x, node.y, config);
   if (map_index >= config.obstacle_map.size()) {
     return false;
   }
@@ -162,37 +180,35 @@ Grid BuildGridSnapshot(const Config& config, const Node& ref_node,
 
   for (int ix = 0; ix < config.x_width; ++ix) {
     for (int iy = 0; iy < config.y_width; ++iy) {
-      const size_t index = static_cast<size_t>(ix * config.y_width + iy);
-      if (config.obstacle_map[index]) {
+      const std::size_t index = CalcMapIndex(ix, iy, config);
+      if (index < grid.data.size() && config.obstacle_map[index]) {
         grid.data[index] = CellType::kObstacle;
       }
     }
   }
 
-  for (const auto& [id, node] : open_set) {
-    (void)id;
-    const size_t index = static_cast<size_t>(node.x * config.y_width + node.y);
+  for (const auto& entry : open_set) {
+    const auto& node = entry.second;
+    const std::size_t index = CalcMapIndex(node.x, node.y, config);
     if (index < grid.data.size()) {
       grid.data[index] = CellType::kOpen;
     }
   }
 
-  for (const auto& [id, node] : closed_set) {
-    (void)id;
-    const size_t index = static_cast<size_t>(node.x * config.y_width + node.y);
+  for (const auto& entry : closed_set) {
+    const auto& node = entry.second;
+    const std::size_t index = CalcMapIndex(node.x, node.y, config);
     if (index < grid.data.size()) {
       grid.data[index] = CellType::kClosed;
     }
   }
 
-  const size_t start_index =
-      static_cast<size_t>(start.x * config.y_width + start.y);
+  const std::size_t start_index = CalcMapIndex(start.x, start.y, config);
   if (start_index < grid.data.size()) {
     grid.data[start_index] = CellType::kStart;
   }
 
-  const size_t goal_index =
-      static_cast<size_t>(goal.x * config.y_width + goal.y);
+  const std::size_t goal_index = CalcMapIndex(goal.x, goal.y, config);
   if (goal_index < grid.data.size()) {
     grid.data[goal_index] = CellType::kGoal;
   }
@@ -201,7 +217,7 @@ Grid BuildGridSnapshot(const Config& config, const Node& ref_node,
   for (size_t i = 0; i < rx.size() && i < ry.size(); ++i) {
     const int ix = CalcXYIndex(rx[i], config.min_x, config.resolution);
     const int iy = CalcXYIndex(ry[i], config.min_y, config.resolution);
-    const size_t path_index = static_cast<size_t>(ix * config.y_width + iy);
+    const std::size_t path_index = CalcMapIndex(ix, iy, config);
     if (path_index >= grid.data.size()) {
       continue;
     }
@@ -263,23 +279,22 @@ std::vector<double> BuildObstacleY() {
 
 std::vector<Grid> Run() {
   // Default parameters matching the Python Robotics example.
-  constexpr double grid_size = 2.0;
-  constexpr double robot_radius = 1.0;
-  const double sx = 10.0;
-  const double sy = 10.0;
-  const double gx = 50.0;
-  const double gy = 50.0;
+  constexpr double kStartX = 10.0;
+  constexpr double kStartY = 10.0;
+  constexpr double kGoalX = 50.0;
+  constexpr double kGoalY = 50.0;
 
   const auto ox = BuildObstacleX();
   const auto oy = BuildObstacleY();
 
-  const auto config = BuildConfig(ox, oy, grid_size, robot_radius);
+  const auto config =
+      BuildConfig(ox, oy, kDefaultGridSize, kDefaultRobotRadius);
   const auto motion = GetMotionModel();
 
-  Node start{CalcXYIndex(sx, config.min_x, config.resolution),
-             CalcXYIndex(sy, config.min_y, config.resolution), 0.0, -1};
-  Node goal{CalcXYIndex(gx, config.min_x, config.resolution),
-            CalcXYIndex(gy, config.min_y, config.resolution), 0.0, -1};
+  Node start{CalcXYIndex(kStartX, config.min_x, config.resolution),
+             CalcXYIndex(kStartY, config.min_y, config.resolution), 0.0, -1};
+  Node goal{CalcXYIndex(kGoalX, config.min_x, config.resolution),
+            CalcXYIndex(kGoalY, config.min_y, config.resolution), 0.0, -1};
 
   std::unordered_map<int, Node> open_set;
   std::unordered_map<int, Node> closed_set;

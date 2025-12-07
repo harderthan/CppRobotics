@@ -27,7 +27,7 @@ class GridBasedSearch : public rclcpp::Node {
           std::for_each(results.begin(), results.end(),
                         [this, grid_to_msg_callback](const auto& grid) {
                           publisher_->publish(grid_to_msg_callback(grid));
-                          rclcpp::sleep_for(std::chrono::milliseconds(100));
+                          rclcpp::sleep_for(std::chrono::milliseconds(50));
                         });
         });
   }

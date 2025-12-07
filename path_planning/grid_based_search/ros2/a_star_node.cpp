@@ -13,37 +13,43 @@ using CellType = path_planning::grid_based_search::a_star::CellType;
 using GridBasedSearchNode =
     path_planning::grid_based_search::GridBasedSearch<Grid>;
 
+constexpr int kPreviewCellsPerAxis = 10;
+constexpr int kColorChannelCount = 4;
+
+foxglove_msgs::msg::PackedElementField MakeField(const char* name,
+                                                 unsigned int offset) {
+  foxglove_msgs::msg::PackedElementField field;
+  field.name = name;
+  field.offset = offset;
+  field.type = foxglove_msgs::msg::PackedElementField::UINT8;
+  return field;
+}
+
 foxglove_msgs::msg::Grid GridToMsgCallback(const Grid& grid) {
+  foxglove_msgs::msg::Grid msg;
+
+  if (grid.width <= 0 || grid.height <= 0) {
+    return msg;
+  }
+
+  const size_t width = static_cast<size_t>(grid.width);
+  const size_t height = static_cast<size_t>(grid.height);
+  const size_t cell_count = width * height;
+  if (grid.data.size() != cell_count) {
+    return msg;
+  }
+
   geometry_msgs::msg::Pose grid_center;
-  grid_center.position.x = -grid.width / 2.0;
-  grid_center.position.y = -grid.height / 2.0;
+  grid_center.position.x = -static_cast<double>(grid.width) / 2.0;
+  grid_center.position.y = -static_cast<double>(grid.height) / 2.0;
   grid_center.position.z = 0.0;
 
-  foxglove_msgs::msg::PackedElementField r_field;
-  r_field.name = "red";
-  r_field.offset = 0;
-  r_field.type = foxglove_msgs::msg::PackedElementField::UINT8;
-
-  foxglove_msgs::msg::PackedElementField g_field;
-  g_field.name = "green";
-  g_field.offset = 1;
-  g_field.type = foxglove_msgs::msg::PackedElementField::UINT8;
-
-  foxglove_msgs::msg::PackedElementField b_field;
-  b_field.name = "blue";
-  b_field.offset = 2;
-  b_field.type = foxglove_msgs::msg::PackedElementField::UINT8;
-
-  foxglove_msgs::msg::PackedElementField a_field;
-  a_field.name = "alpha";
-  a_field.offset = 3;
-  a_field.type = foxglove_msgs::msg::PackedElementField::UINT8;
-
+  using ColorByte = unsigned char;
   struct Rgba {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-    uint8_t alpha;
+    ColorByte red;
+    ColorByte green;
+    ColorByte blue;
+    ColorByte alpha;
   };
 
   const auto ToColor = [](CellType cell) -> Rgba {
@@ -64,29 +70,33 @@ foxglove_msgs::msg::Grid GridToMsgCallback(const Grid& grid) {
   };
 
   foxglove_msgs::msg::Vector2 cell_size;
-  // Adaptive cell size to always display as 10x10 grid
-  cell_size.x = grid.width / 10.0;
-  cell_size.y = grid.height / 10.0;
+  cell_size.x = static_cast<double>(grid.width) /
+                static_cast<double>(kPreviewCellsPerAxis);
+  cell_size.y = static_cast<double>(grid.height) /
+                static_cast<double>(kPreviewCellsPerAxis);
 
-  foxglove_msgs::msg::Grid msg;
   msg.timestamp = rclcpp::Clock().now();
   msg.frame_id = "map";
   msg.pose = grid_center;
   msg.column_count = grid.width;
   msg.cell_size = cell_size;
-  msg.fields = {r_field, g_field, b_field, a_field};
-  msg.cell_stride = 4;  // rgba bytes per cell
+  msg.fields = {MakeField("red", 0U), MakeField("green", 1U),
+                MakeField("blue", 2U), MakeField("alpha", 3U)};
+  msg.cell_stride = kColorChannelCount;  // rgba bytes per cell
   msg.row_stride = msg.cell_stride * msg.column_count;
 
-  const size_t cell_count =
-      static_cast<size_t>(grid.width) * static_cast<size_t>(grid.height);
-  msg.data.resize(cell_count * msg.cell_stride);
+  msg.data.resize(cell_count * static_cast<size_t>(msg.cell_stride));
 
   for (int y = 0; y < grid.height; ++y) {
     for (int x = 0; x < grid.width; ++x) {
-      const size_t src_index = static_cast<size_t>(x * grid.height + y);
+      const size_t src_index =
+          static_cast<size_t>(x) * height + static_cast<size_t>(y);
+      if (src_index >= grid.data.size()) {
+        continue;
+      }
       const size_t dst_index =
-          static_cast<size_t>(y * grid.width + x) * msg.cell_stride;
+          (static_cast<size_t>(y) * width + static_cast<size_t>(x)) *
+          static_cast<size_t>(msg.cell_stride);
       const auto color = ToColor(grid.data[src_index]);
       msg.data[dst_index + 0] = color.red;
       msg.data[dst_index + 1] = color.green;
