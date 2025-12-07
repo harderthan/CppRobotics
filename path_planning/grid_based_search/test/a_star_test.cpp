@@ -11,6 +11,7 @@ TEST(AStarTest, CellTypeEnum) {
   EXPECT_EQ(static_cast<int>(CellType::kObstacle), 1);
   EXPECT_EQ(static_cast<int>(CellType::kStart), 2);
   EXPECT_EQ(static_cast<int>(CellType::kGoal), 3);
+  EXPECT_EQ(static_cast<int>(CellType::kPath), 4);
 }
 
 // Test Grid structure initialization.

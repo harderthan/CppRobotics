@@ -1,5 +1,5 @@
-#ifndef PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
-#define PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
+#ifndef PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP_
+#define PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP_
 
 #include <vector>
 
@@ -12,6 +12,7 @@ enum class CellType {
   kObstacle = 1,
   kStart = 2,
   kGoal = 3,
+  kPath = 4,
 };
 
 struct Grid {
@@ -30,4 +31,4 @@ Results Run();
 }  // namespace grid_based_search
 }  // namespace path_planning
 
-#endif  // PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
+#endif  // PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP_
