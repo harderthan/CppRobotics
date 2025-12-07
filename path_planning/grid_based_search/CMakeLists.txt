@@ -13,6 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_gtest REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(foxglove_msgs REQUIRED)
 
@@ -52,5 +53,21 @@ install(
   DIRECTORY foxglove
   DESTINATION share/${PROJECT_NAME}
 )
+
+# Tests
+if(BUILD_TESTING)
+  ament_add_gtest(a_star_test
+    test/a_star_test.cpp
+  )
+  
+  target_include_directories(a_star_test
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+  )
+  
+  target_link_libraries(a_star_test
+    a_star
+  )
+endif()
 
 ament_package()

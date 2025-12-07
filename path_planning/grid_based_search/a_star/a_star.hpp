@@ -1,5 +1,5 @@
-#ifndef PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_H
-#define PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_H
+#ifndef PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
+#define PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
 
 #include <vector>
 
@@ -16,14 +16,18 @@ enum class CellType {
 
 struct Grid {
   std::vector<CellType> data;
+  std::vector<double> path_x;
+  std::vector<double> path_y;
   int width;
   int height;
 };
 
-std::vector<Grid> Run();
+using Results = std::vector<Grid>;
+
+Results Run();
 
 }  // namespace a_star
 }  // namespace grid_based_search
 }  // namespace path_planning
 
-#endif  // PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_H
+#endif  // PATH_PLANNING_GRID_BASED_SEARCH_A_STAR_A_STAR_HPP
