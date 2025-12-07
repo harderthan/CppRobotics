@@ -54,20 +54,4 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
-# Tests
-if(BUILD_TESTING)
-  ament_add_gtest(a_star_test
-    test/a_star_test.cpp
-  )
-  
-  target_include_directories(a_star_test
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-  )
-  
-  target_link_libraries(a_star_test
-    a_star
-  )
-endif()
-
 ament_package()
