@@ -23,17 +23,16 @@ __pycache__/
 *.prof
 
 # Editor/IDE specific files
+.cursor/
 .vscode/
 .idea/
 *.swp
 *~
+compile_commands.json
+
 # Other common temporary files
 *.bak
 *.tmp
-
-# VScode
-.vscode
-compile_commands.json
 
 # AI Agent
 research.md
