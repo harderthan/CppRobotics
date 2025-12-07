@@ -1,8 +1,9 @@
-#ifndef PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP
-#define PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP
+#ifndef PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP_
+#define PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP_
 
 #include <algorithm>
 #include <functional>
+#include <string>
 #include <vector>
 
 #include "foxglove_msgs/msg/grid.hpp"
@@ -23,10 +24,12 @@ class GridBasedSearch : public rclcpp::Node {
         std::chrono::milliseconds(0),
         [this, results_callback, grid_to_msg_callback]() {
           const auto results = results_callback();
-          std::for_each(results.begin(), results.end(),
-                        [this, grid_to_msg_callback](const auto& grid) {
-                          publisher_->publish(grid_to_msg_callback(grid));
-                        });
+          std::for_each(
+              results.begin(), results.end(),
+              [this, grid_to_msg_callback](const auto& grid) {
+                rclcpp::sleep_for(std::chrono::milliseconds(100));
+                publisher_->publish(grid_to_msg_callback(grid));
+              });
         });
   }
 
@@ -38,4 +41,4 @@ class GridBasedSearch : public rclcpp::Node {
 }  // namespace grid_based_search
 }  // namespace path_planning
 
-#endif  // PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP
+#endif  // PATH_PLANNING_GRID_BASED_SEARCH_ROS2_GRID_BASED_SEARCH_HPP_
